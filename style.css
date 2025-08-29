@@ -167,7 +167,7 @@ header.scrolled .navbar {
 }
 
 .college-text h2 { font-size: 40px; color: #00bcd4; margin-bottom: 20px; }
-.college-text p { font-size: 18px; line-height: 1.6; }
+.college-text p { font-size: 18px; line-height: 1.6; color: #D3D3D3;}
 
 .college-image img {
   width: 80%;
