@@ -86,3 +86,41 @@ function showNextActivity() {
 // Auto slide every 3 seconds
 setInterval(showNextActivity, 3000);
 
+let startX = 0;
+let isDragging = false;
+
+// Touch start (mobile)
+activitiesContainer.addEventListener("touchstart", (e) => {
+  startX = e.touches[0].clientX;
+});
+
+// Touch end
+activitiesContainer.addEventListener("touchend", (e) => {
+  let endX = e.changedTouches[0].clientX;
+  handleSwipe(endX - startX);
+});
+
+// Mouse drag (desktop)
+activitiesContainer.addEventListener("mousedown", (e) => {
+  isDragging = true;
+  startX = e.clientX;
+});
+
+activitiesContainer.addEventListener("mouseup", (e) => {
+  if (isDragging) {
+    isDragging = false;
+    handleSwipe(e.clientX - startX);
+  }
+});
+
+function handleSwipe(distance) {
+  if (distance > 50) {
+    // Swipe right → previous slide
+    currentIndex = (currentIndex - 1 + cards.length) % cards.length;
+    updateSlide();
+  } else if (distance < -50) {
+    // Swipe left → next slide
+    currentIndex = (currentIndex + 1) % cards.length;
+    updateSlide();
+  }
+}
