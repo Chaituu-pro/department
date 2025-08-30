@@ -1,4 +1,6 @@
-// Hamburger toggle
+// =======================
+// NAVBAR + HAMBURGER
+// =======================
 const hamburger = document.getElementById("hamburger");
 const navLinks = document.getElementById("navLinks");
 
@@ -14,7 +16,9 @@ window.addEventListener("scroll", () => {
   else header.classList.remove("scrolled");
 });
 
-// Universal scroll reveal (with fade-away on scroll back)
+// =======================
+// SCROLL REVEAL (fade in/out)
+// =======================
 const revealElements = document.querySelectorAll("[data-reveal]");
 
 function revealOnScroll() {
@@ -22,12 +26,9 @@ function revealOnScroll() {
 
   revealElements.forEach(el => {
     const rect = el.getBoundingClientRect();
-
     if (rect.top < triggerBottom && rect.bottom > 50) {
-      // Element is visible → show it
       el.classList.add("show");
     } else {
-      // Element went out of view → hide it again
       el.classList.remove("show");
     }
   });
@@ -40,7 +41,6 @@ window.addEventListener("load", revealOnScroll);
 document.querySelectorAll(".nav-links a").forEach(link => {
   link.addEventListener("click", function(e) {
     e.preventDefault();
-
     const targetId = this.getAttribute("href").substring(1);
     const targetSection = document.getElementById(targetId);
 
@@ -50,77 +50,93 @@ document.querySelectorAll(".nav-links a").forEach(link => {
         behavior: "smooth"
       });
     }
-
     navLinks.classList.remove("active");
   });
 });
 
-
-// Smooth drag scrolling for activities section
-// ===== Auto Scroll Activities Carousel (Infinite Loop) =====
+// =======================
+// ACTIVITIES CAROUSEL
+// =======================
 const activitiesContainer = document.querySelector(".activities-container");
-const activityCards = document.querySelectorAll(".activity-card");
+const cards = document.querySelectorAll(".activity-card");
+const dotsWrapper = document.querySelector(".dots");
 
 let currentIndex = 0;
-const totalCards = activityCards.length;
-
-// Clone first card & append to the end
-const firstClone = activityCards[0].cloneNode(true);
-activitiesContainer.appendChild(firstClone);
-
-function showNextActivity() {
-  currentIndex++;
-  activitiesContainer.style.transition = "transform 0.6s ease-in-out";
-  activitiesContainer.style.transform = `translateX(-${currentIndex * 100}%)`;
-
-  if (currentIndex === totalCards) {
-    // Reset to first slide smoothly
-    setTimeout(() => {
-      activitiesContainer.style.transition = "none";
-      activitiesContainer.style.transform = "translateX(0)";
-      currentIndex = 0;
-    }, 600); // match transition time
-  }
-}
-
-// Auto slide every 3 seconds
-setInterval(showNextActivity, 3000);
-
+let autoScrollInterval;
 let startX = 0;
 let isDragging = false;
 
-// Touch start (mobile)
+// Create dots dynamically
+cards.forEach((_, i) => {
+  const dot = document.createElement("span");
+  dot.classList.add("dot");
+  if (i === 0) dot.classList.add("active");
+  dot.addEventListener("click", () => {
+    currentIndex = i;
+    updateSlide();
+    resetAutoScroll();
+  });
+  dotsWrapper.appendChild(dot);
+});
+const dots = document.querySelectorAll(".dot");
+
+// Update slide position + dots
+function updateSlide() {
+  cards.forEach((card, index) => {
+    card.style.transform = `translateX(${100 * (index - currentIndex)}%)`;
+  });
+  dots.forEach((dot, index) => {
+    dot.classList.toggle("active", index === currentIndex);
+  });
+}
+
+// Auto scroll
+function startAutoScroll() {
+  autoScrollInterval = setInterval(() => {
+    currentIndex = (currentIndex + 1) % cards.length;
+    updateSlide();
+  }, 3000);
+}
+function resetAutoScroll() {
+  clearInterval(autoScrollInterval);
+  startAutoScroll();
+}
+
+// Swipe / Drag
+function handleSwipe(distance) {
+  if (distance > 50) {
+    currentIndex = (currentIndex - 1 + cards.length) % cards.length;
+  } else if (distance < -50) {
+    currentIndex = (currentIndex + 1) % cards.length;
+  }
+  updateSlide();
+}
+
+// Touch
 activitiesContainer.addEventListener("touchstart", (e) => {
+  clearInterval(autoScrollInterval);
   startX = e.touches[0].clientX;
 });
-
-// Touch end
 activitiesContainer.addEventListener("touchend", (e) => {
   let endX = e.changedTouches[0].clientX;
   handleSwipe(endX - startX);
+  resetAutoScroll();
 });
 
-// Mouse drag (desktop)
+// Mouse drag
 activitiesContainer.addEventListener("mousedown", (e) => {
+  clearInterval(autoScrollInterval);
   isDragging = true;
   startX = e.clientX;
 });
-
 activitiesContainer.addEventListener("mouseup", (e) => {
   if (isDragging) {
     isDragging = false;
     handleSwipe(e.clientX - startX);
+    resetAutoScroll();
   }
 });
 
-function handleSwipe(distance) {
-  if (distance > 50) {
-    // Swipe right → previous slide
-    currentIndex = (currentIndex - 1 + cards.length) % cards.length;
-    updateSlide();
-  } else if (distance < -50) {
-    // Swipe left → next slide
-    currentIndex = (currentIndex + 1) % cards.length;
-    updateSlide();
-  }
-}
+// Init
+updateSlide();
+startAutoScroll();
